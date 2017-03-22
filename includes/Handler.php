@@ -19,8 +19,7 @@ if (!class_exists('Handler')){
         {
 
             $this->plugin_slug = 'acf-advanced-search';
-            $this->version = '1.1.0';
-
+            $this->version = '1.2.0';
             $this->loadDependencies();
             $this->defineBackEndHooks();
             $this->defineFrontEndHooks();
@@ -33,7 +32,10 @@ if (!class_exists('Handler')){
             require_once 'SearchResults.php';
             require_once 'HooksLoader.php';
             require_once 'SearchWidget.php';
+
             $this->loader = new HooksLoader();
+
+            new SearchResults();
 
         }
 
@@ -42,8 +44,6 @@ if (!class_exists('Handler')){
         {
             $search_widget = new SearchWidget($this->getVersion());
             $this->loader->addAction('widgets_init',$search_widget,'registerACFSearchWidget');
-
-
         }
 
         private function defineFrontEndHooks()
@@ -54,8 +54,6 @@ if (!class_exists('Handler')){
             $this->loader->addAction('init',$search_results, 'getAvailableMetaKeysForFilters');
             $this->loader->addFilter('posts_join', $search_results, 'makeSearchJoin');
             $this->loader->addFilter('posts_distinct', $search_results, 'makeSearchDistinct');
-
-
         }
 
         public function run()
@@ -67,7 +65,5 @@ if (!class_exists('Handler')){
         {
             return $this->version;
         }
-
-
     }
 }

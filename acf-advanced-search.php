@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: ACF restricted search and access
+Plugin Name: ACF Advanced Search
 Plugin URI:
 Description:  This plugin make ACF fields accessible for WP searching with filters. Also, you can create rules for restricted access to ACF custom fields in Frontend and in the search results. Restricted access depends on users roles.
 Author: Victor Demianenko
@@ -30,9 +30,9 @@ function runACFAdvancedSearch() {
 
 runACFAdvancedSearch();
 
-//function loadTextDomain() {
-//
-//    load_plugin_textdomain( 'acf-advanced-search', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-//
-//}
-//add_action( 'init', 'loadTexDomain' );
+function loadTextDomainACFAdvancedSearch() {
+
+    load_plugin_textdomain( 'acf-advanced-search', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+
+}
+add_action( 'init', 'loadTextDomainACFAdvancedSearch' );

@@ -1,19 +1,15 @@
 <?php
 
 namespace ACFAdvancedSearch;
-/**
- * Created by PhpStorm.
- * User: AdminLPi
- * Date: 01.03.2017
- * Time: 17:00
- */
+
 class SearchFilters
 {
     private $post_type;
 
     public function __construct()
     {
-        $this->post_type = 'partners';
+        //TODO Add option in admin panel for selecting post type
+        $this->post_type = 'post';
     }
 
     public static function getIDsOfAllACFGroups()
@@ -29,6 +25,27 @@ class SearchFilters
 
         return $results;
     }
+
+    public static function getKeysOfAllACFFields()
+    {
+        global $wpdb;
+        $kes_of_acf_fields = array();
+
+        $query = 'SELECT DISTINCT m.meta_key
+            FROM ' . $wpdb->posts . ' p INNER JOIN ' . $wpdb->postmeta . ' m ON p.ID = m.post_id
+            WHERE p.post_status = "publish"
+            AND p.post_type = "acf"
+            AND LEFT (m.meta_key,6) = "field_"
+            ORDER BY meta_key';
+        $results = $wpdb->get_results($query, ARRAY_N);
+
+        foreach ($results as $result) {
+            $kes_of_acf_fields[] = $result[0];
+        }
+
+        return $kes_of_acf_fields;
+    }
+
 
     public static function getAvailableMetaKeysForFilters()
     {
@@ -50,15 +67,37 @@ class SearchFilters
 
 
         foreach ($groups_list as $id) {
-            $fields = acf_get_fields_by_id($id);
-            foreach ($fields as $field) {
-                if ((strpos($field['wrapper']['id'], $roles) !== false) || empty($field['wrapper']['id'])) {
-                    array_push($available_meta_keys_for_search, $field['name']);
+            $fields = self::getObjectsOfACFFields($id);
+            if ($fields) {
+                foreach ($fields as $field) {
+                        array_push($available_meta_keys_for_search, $field['name']);
+                    }
                 }
             }
-        }
+
         return $available_meta_keys_for_search;
     }
+
+    /**
+     * @param $groups_key
+     * @return array|bool|mixed|void
+     */
+
+    public static function getObjectsOfACFFields($groups_key)
+    {
+        $objects_of_acf_fields = array();
+
+         if (function_exists('get_field_object')) {
+            $acf_fields_keys = self::getKeysOfAllACFFields();
+
+            foreach ($acf_fields_keys as $acf_field_key) {
+                $objects_of_acf_fields[] = get_field_object($acf_field_key);
+            }
+
+        }
+        return $objects_of_acf_fields;
+    }
+
 
     /**
      * Join posts and postmeta tables
@@ -73,10 +112,16 @@ class SearchFilters
 
             $join .= ' LEFT JOIN ' . $wpdb->postmeta . ' ON ' . $wpdb->posts . '.ID = ' . $wpdb->postmeta . '.post_id ';
 
-            foreach ($this->getAvailableMetaKeysForFilters() as $values) {
-                if (isset($_GET[$values]) && !empty($_GET[$values])) {
-                    $join .= " LEFT JOIN $wpdb->postmeta as $values ON $wpdb->posts.ID = $values.post_id";
+            foreach ($this->getAvailableMetaKeysForFilters() as $meta_key) {
+                foreach ($_GET as $key => $value) {
+                    if (strcasecmp($key, $meta_key) == 0 && !empty($value)) {
 
+                        $join .= " LEFT JOIN $wpdb->postmeta as $meta_key ON $wpdb->posts.ID = $meta_key.post_id";
+
+                    } elseif (preg_match('/' . $meta_key . '/', $key)) {
+                        $join .= " LEFT JOIN $wpdb->postmeta as $key ON $wpdb->posts.ID = $key.post_id";
+
+                    }
                 }
             }
 
@@ -102,19 +147,31 @@ class SearchFilters
 
             $where .= " AND ($wpdb->posts.post_type = '" . $this->post_type . "') ";
 
-            if (!is_user_logged_in()) {
-                $where .= 'NOT IN ( 
-                ( ' . $wpdb->postmeta . '.meta_key = "title" ) 
-                OR ( ' . $wpdb->postmeta . '.meta_key = "country" )
-                ) ';
-            }
+            foreach ($this->getAvailableMetaKeysForFilters() as $meta_key) {
+                $multi_select_values = array();
+                foreach ($_GET as $key => $value) {
+                    if (strcasecmp($key, $meta_key) == 0 && !empty($value)) {
 
-            //Filters
-            foreach ($this->getAvailableMetaKeysForFilters() as $values) {
-                if (isset($_GET[$values]) && !empty($_GET[$values])) {
-                    $where .= " AND $values.meta_key='" . $values . "'";
-                    $where .= " AND $values.meta_value LIKE '%" . strip_tags($_GET[$values]) . "%'";
+                        $where .= " AND $key.meta_key='" . $meta_key . "'";
+                        $where .= " AND $key.meta_value LIKE '%" . strip_tags($value) . "%'";
+
+                    } elseif (preg_match('/' . $meta_key . '/', $key)) {
+
+                        $s_where = "( $key.meta_key='" . $meta_key . "' AND $key.meta_value LIKE '%" . strip_tags($value) . "%')";
+                        array_push($multi_select_values, $s_where);
+
+                    }
+
+
                 }
+                if (!empty($multi_select_values)) {
+
+                    $where .= " AND (";
+                    $where .= implode(" OR ", $multi_select_values);
+                    $where .= ")";
+
+                }
+
             }
         }
         return $where;
@@ -126,6 +183,7 @@ class SearchFilters
      *
      * http://codex.wordpress.org/Plugin_API/Filter_Reference/posts_distinct
      */
+
     public function makeSearchDistinct($where)
     {
 
@@ -135,6 +193,11 @@ class SearchFilters
 
         return $where;
     }
+
+    /**
+     * Display filters in ACF Search widget
+     *
+     */
 
     public static function displayFilters()
     {
@@ -146,7 +209,7 @@ class SearchFilters
         }
 
         foreach ($arr as $id) {
-            $fields = acf_get_fields_by_id($id);
+            $fields = self::getObjectsOfACFFields($id);
             if ($fields) {
                 foreach ($fields as $field) {
                     if (($field['type'] == 'select') && (in_array($field['name'], self::getAvailableMetaKeysForFilters()))) {
@@ -183,30 +246,30 @@ class SearchFilters
                         echo '</select><br/>';
 
 
-                    } elseif ($field['type'] == 'checkbox') {
+                    } elseif ($field['type'] == 'radio') {
 
 
-                        /* Display Checkboxes in Search Widget */
+                        /* Display Radio Button in Advanced Search Widget */
+                        echo '<br/>';
+                        echo $field['label'];
+                        echo '<br/>';
 
-                        /*
                         {
                             echo '<div>';
-//                                echo '<form enctype="application/json">';
 
-                            $counter = 1;
-                            foreach ($field['choices'] as $k => $v) {
+                            foreach ($field['choices'] as $v) {
                                 $checked = '';
-                                if (isset($_GET[$field['name'] . $counter]) && !empty($_GET[$field['name'] . $counter])) {
-                                    $checked = 'checked';
+                                if (isset($_GET[$field['name']])) {
+                                    if (!empty($_GET[$field['name']])) {
+                                        $checked = ($v == $_GET[$field['name']]) ? 'checked' : '';
+                                    }
                                 }
-                                echo '<label><input type="checkbox" name="' . $field['name'] . $counter . '" ' . $checked . '
+                                echo '<label><input type="radio" name="' . $field['name'] . '" ' . $checked . '
                                 value="' . $v . '">' . $v . '</label><br/>';
-                                $counter++;
+
                             }
                             echo '</div>';
-//                                echo '</form>';
                         }
-                        */
                     }
                 }
             }

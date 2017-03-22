@@ -3,7 +3,7 @@ Contributors: Victor Demianenko
 Tags: Advanced Custom Fields, search filters, advanced search, restricted search
 Requires at least: 4.3
 Tested up to: 4.6
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -11,7 +11,7 @@ Advanced search for the Advanced Custom Fields Pro plugin. Search with filters a
 
 == Description ==
 
-This plugin allows to search by content with filters in fields created using Advanced Custom Fields Pro plugin.
+This plugin allows to search by content with filters in fields created using Advanced Custom Fields plugin (Free & Pro).
 
 Restrict access to search query based on user role is supported.
 
@@ -33,7 +33,7 @@ The manual installation method involves downloading ACF Advanced Search plugin a
 
 1. ACF Advanced Search widget (BackEnd).
 2. ACF Advanced Search widget (FrontEnd). All filters will be created automatically from fields that have types: select, checkbox, radio button.
-3. For restrict access to search query merely to type user roles (comma separated) that have access to search in this field.
+3. For restrict access to search query just type user roles (comma separated) that have access to search in this field.
 
 == Changelog ==
 
