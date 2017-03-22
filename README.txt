@@ -1,6 +1,6 @@
 === ACF Advanced Search ===
 Contributors: Victor Demianenko
-Tags: Advanced Custom Fields, search filters, advanced search, restricted search
+Tags: Advanced Custom Fields, search filters, advanced search, advanced search widget
 Requires at least: 4.3
 Tested up to: 4.6
 Stable tag: 1.2.0
