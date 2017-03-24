@@ -2,18 +2,21 @@
 Contributors: Victor Demianenko
 Tags: Advanced Custom Fields, search filters, advanced search, advanced search widget
 Requires at least: 4.3
-Tested up to: 4.6
+Tested up to: 4.7.3
 Stable tag: 1.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Advanced search for the Advanced Custom Fields Pro plugin. Search with filters and restricted access based on users roles.
+Advanced search for the Advanced Custom Fields plugin (Free & Pro).
 
 == Description ==
 
-This plugin allows to search by content with filters in fields created using Advanced Custom Fields plugin (Free & Pro).
+This plugin extends the WordPress search widget and allows to search by content with filters in fields created using Advanced Custom Fields plugin. Free and Pro versions of ACF plugin are supported.
 
-Restrict access to search query based on user role is supported.
+For displaying ACF fields in a single post can be used short code [displayACFfields]
+
+If you edit template in PHP editor you can use: `<?php echo do_shortcode('[displayACFfields]'); ?>`
+
 
 == Installation ==
 
@@ -32,10 +35,12 @@ The manual installation method involves downloading ACF Advanced Search plugin a
 == Screenshots ==
 
 1. ACF Advanced Search widget (BackEnd).
-2. ACF Advanced Search widget (FrontEnd). All filters will be created automatically from fields that have types: select, checkbox, radio button.
-3. For restrict access to search query just type user roles (comma separated) that have access to search in this field.
+2. ACF Advanced Search widget (FrontEnd). All filters will be created automatically from fields that have types: select, radio button.
 
 == Changelog ==
+
+= 1.2.0 =
+*Fixed minor bugs - 22 March 2017*
 
 = 1.1.0 =
 *Release Date - 01 March 2017*
